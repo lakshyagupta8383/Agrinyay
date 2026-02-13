@@ -1,95 +1,26 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
-from enum import Enum
-import logging
-import joblib
-import pandas as pd
-import os
-import asyncio
+
+from .schemas import PredictionRequest, PredictionResponse
+from .predictor import QualityPredictor
+from .config import MODEL_PATH, get_model_version
+from .logger import setup_logger
 
 
-# CONFIGURATION
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_PATH = os.path.join(BASE_DIR, "models", "quality_model.pkl")
-VERSION_FILE = os.path.join(BASE_DIR, "model_version.txt")
+app = FastAPI(title="AGRINYAY ML Service")
 
-
-def get_model_version():
-    try:
-        with open(VERSION_FILE, "r") as f:
-            return f.read().strip()
-    except:
-        return "unknown"
-
-
+logger = setup_logger()
 model_version = get_model_version()
 
-
-
-# LOGGING SETUP
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(message)s"
-)
-
-logger = logging.getLogger("AGRINYAY_ML")
+predictor = QualityPredictor(MODEL_PATH)
 
 
 
-# ENUM DEFINITIONS (DOMAIN RESTRICTION)
-class CropType(str, Enum):
-    Banana = "Banana"
-    Apple = "Apple"
-    Mango = "Mango"
-    Orange = "Orange"
-    Grape = "Grape"
-    Strawberry = "Strawberry"
-
-
-class InitialCondition(str, Enum):
-    Raw = "Raw"
-    SemiRipe = "Semi-Ripe"
-    Ripe = "Ripe"
-
-
-
-# REQUEST / RESPONSE SCHEMAS
-class PredictionRequest(BaseModel):
-    batch_id: str
-    farmer_id: str
-    crop_type: CropType
-    initial_condition: InitialCondition
-    avg_temp: float = Field(..., ge=-10, le=60)
-    humidity_avg: float = Field(..., ge=0, le=100)
-    storage_hours: float = Field(..., ge=0)
-    violation_duration: float = Field(..., ge=0)
-    base_price: float = Field(..., gt=0)
-
-
-class PredictionResponse(BaseModel):
-    batch_id: str
-    farmer_id: str
-    quality_score: float
-    spoilage_risk: float
-    predicted_price: float
-    model_version: str
-
-
-
-# FASTAPI INITIALIZATION
-app = FastAPI(
-    title="AGRINYAY ML Service",
-    version=model_version
-)
-
-
-
-# STARTUP MODEL LOADING
+# Startup
 @app.on_event("startup")
-def load_model():
+def startup_event():
     try:
-        app.state.model = joblib.load(MODEL_PATH)
+        predictor.load()
         logger.info("Model loaded successfully.")
     except Exception as e:
         logger.critical(f"Model loading failed: {e}")
@@ -97,7 +28,7 @@ def load_model():
 
 
 
-# GLOBAL EXCEPTION HANDLER
+# Global Exception Handler
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled error: {exc}")
@@ -111,7 +42,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 
-# HEALTH CHECK
+# Health Check
 @app.get("/health")
 def health_check():
     return {
@@ -121,30 +52,14 @@ def health_check():
 
 
 
-# PREDICTION ENDPOINT
+# Prediction Endpoint
 @app.post("/predict", response_model=PredictionResponse)
 async def predict(data: PredictionRequest):
 
     try:
-        features = {
-            "crop_type": data.crop_type.value,
-            "initial_condition": data.initial_condition.value,
-            "avg_temp": data.avg_temp,
-            "humidity_avg": data.humidity_avg,
-            "storage_hours": data.storage_hours,
-            "violation_duration": data.violation_duration,
-            "base_price": data.base_price,
-        }
-
-        df = pd.DataFrame([features])
-
-
-        prediction = await asyncio.to_thread(app.state.model.predict, df)
-        quality_score = float(prediction[0])
-
-
-        spoilage_risk = 1 - (quality_score / 100)
-        predicted_price = data.base_price * (quality_score / 100)
+        quality_score, spoilage_risk, predicted_price = await predictor.predict(
+            data.dict()
+        )
 
         logger.info(f"Prediction success | batch_id={data.batch_id}")
 
