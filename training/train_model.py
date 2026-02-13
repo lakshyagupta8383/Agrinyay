@@ -10,13 +10,14 @@ from xgboost import XGBRegressor
 
 
 # 1. Load Dataset
-data_path = "../data/crop_sensitive_dataset.csv"
+data_path = "../data/crop_sensitive_dataset_v2.csv"
 df = pd.read_csv(data_path)
 
 
 # 2. Define Features & Target
 features = [
     "crop_type",
+    "initial_condition",
     "avg_temp",
     "humidity_avg",
     "storage_hours",
@@ -31,7 +32,7 @@ y = df[target]
 
 
 # 3. Preprocessing
-categorical_features = ["crop_type"]
+categorical_features = ["crop_type", "initial_condition"]
 numerical_features = [
     "avg_temp",
     "humidity_avg",
@@ -50,7 +51,7 @@ preprocessor = ColumnTransformer(
 
 # 4. XGBoost Model (Optimized)
 model = XGBRegressor(
-    n_estimators=1500,
+    n_estimators=800,
     learning_rate=0.02,
     max_depth=10,
     min_child_weight=1,
