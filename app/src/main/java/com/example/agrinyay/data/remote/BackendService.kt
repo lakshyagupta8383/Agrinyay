@@ -1,11 +1,14 @@
 package com.example.agrinyay.data.remote
 
-import com.example.agrinyay.data.model.CreateBatchRequest
-import com.example.agrinyay.data.model.CreateBatchResponse
+import com.example.agrinyay.data.model.*
 
 interface BackendService {
 
     suspend fun createBatch(
-        request: CreateBatchRequest
-    ): CreateBatchResponse
+        request:CreateBatchRequest
+    ):GenericResponse<CreateBatchResponse>
+
+    suspend fun attachCrate(
+        request:AttachCrateRequest
+    ):GenericResponse<Unit>
 }

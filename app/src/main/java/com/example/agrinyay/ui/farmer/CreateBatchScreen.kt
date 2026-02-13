@@ -15,8 +15,8 @@ import com.example.agrinyay.viewmodel.BatchViewModel
 @Composable
 fun CreateBatchScreen(
     navController: NavController,
-    farmerId: String,
-    hardwareId: String,
+    farmerUid: String,
+    vehicleId: String,
     viewModel: BatchViewModel
 ) {
 
@@ -82,7 +82,7 @@ fun CreateBatchScreen(
                         OutlinedTextField(
                             value = location,
                             onValueChange = { location = it },
-                            label = { Text("Location") },
+                            label = { Text("Origin Location") },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true
                         )
@@ -92,20 +92,27 @@ fun CreateBatchScreen(
                         Button(
                             onClick = {
 
-                                viewModel.createBatch(
-                                    farmerId = farmerId,
-                                    hardwareId = hardwareId,
-                                    fruitType = fruitType,
-                                    weight = weight,
-                                    location = location
-                                )
+                                if (
+                                    fruitType.isNotBlank() &&
+                                    weight.isNotBlank() &&
+                                    location.isNotBlank()
+                                ) {
 
-                                val newBatchId = viewModel.latestBatchId
-
-                                if (newBatchId.isNotBlank()) {
-                                    navController.navigate(
-                                        "batch_detail/$farmerId/$newBatchId"
+                                    viewModel.createBatch(
+                                        farmerUid = farmerUid,
+                                        vehicleId = vehicleId,
+                                        cropType = fruitType,
+                                        quantity = weight.toInt(),
+                                        originLocation = location
                                     )
+
+                                    val newBatchId = viewModel.latestBatchId
+
+                                    if (!newBatchId.isNullOrBlank()) {
+                                        navController.navigate(
+                                            "batch_detail/$newBatchId"
+                                        )
+                                    }
                                 }
                             },
                             modifier = Modifier

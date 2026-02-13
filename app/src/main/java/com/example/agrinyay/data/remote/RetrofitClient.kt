@@ -1,15 +1,26 @@
 package com.example.agrinyay.data.remote
+import com.example.agrinyay.BuildConfig
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
 
-    // If backend running locally on laptop
-    private const val BASE_URL = "http://10.0.2.2:5000/"
+    private const val BASE_URL=BuildConfig.BASE_URL
 
-    val api: BackendApi by lazy {
+    private val logging=HttpLoggingInterceptor().apply{
+        level=HttpLoggingInterceptor.Level.BODY
+    }
+
+    private val client=OkHttpClient.Builder()
+        .addInterceptor(logging)
+        .build()
+
+    val api:BackendApi by lazy{
         Retrofit.Builder()
             .baseUrl(BASE_URL)
+            .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(BackendApi::class.java)

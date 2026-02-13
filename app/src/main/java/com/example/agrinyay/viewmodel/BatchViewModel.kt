@@ -1,74 +1,105 @@
 package com.example.agrinyay.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.agrinyay.data.model.CreateBatchRequest
+import com.example.agrinyay.data.model.CreateBatchResponse
+import com.example.agrinyay.data.model.AttachCrateRequest
+import com.example.agrinyay.data.repository.AgriRepository
+import com.example.agrinyay.util.ApiResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import java.util.UUID
+import kotlinx.coroutines.launch
 
-data class Batch(
-    val batchId:String,
-    val farmerId:String,
-    val hardwareId:String,
-    val fruitType:String,
-    val weight:String,
-    val location:String
-)
+class BatchViewModel : ViewModel() {
 
-data class Crate(
-    val crateId:String,
-    val batchId:String,
-    val condition:String,
-    val timestamp:String
-)
+    private val repository = AgriRepository()
 
-class BatchViewModel:ViewModel(){
+    // ----------------------------
+    // LOCAL UI LISTS
+    // ----------------------------
 
-    private val _batches=MutableStateFlow<List<Batch>>(emptyList())
-    val batches:StateFlow<List<Batch>> = _batches
+    private val _batches =
+        MutableStateFlow(emptyList<CreateBatchResponse>())
+    val batches: StateFlow<List<CreateBatchResponse>> = _batches
 
-    private val _crates=MutableStateFlow<List<Crate>>(emptyList())
-    val crates:StateFlow<List<Crate>> = _crates
+    private val _crates =
+        MutableStateFlow(emptyList<AttachCrateRequest>())
+    val crates: StateFlow<List<AttachCrateRequest>> = _crates
 
-    var latestBatchId:String=""
+    // ----------------------------
+    // API STATES
+    // ----------------------------
+
+    private val _batchState =
+        MutableStateFlow<ApiResult<CreateBatchResponse>?>(null)
+    val batchState: StateFlow<ApiResult<CreateBatchResponse>?> = _batchState
+
+    private val _crateState =
+        MutableStateFlow<ApiResult<Unit>?>(null)
+    val crateState: StateFlow<ApiResult<Unit>?> = _crateState
+
+    var latestBatchId: String? = null
+        private set
+
+    // ----------------------------
+    // CREATE BATCH
+    // ----------------------------
 
     fun createBatch(
-        farmerId:String,
-        hardwareId:String,
-        fruitType:String,
-        weight:String,
-        location:String
-    ){
+        farmerUid: String,
+        vehicleId: String,
+        cropType: String,
+        quantity: Int,
+        originLocation: String
+    ) {
 
-        val newBatchId=UUID.randomUUID().toString()
-
-        val batch=Batch(
-            batchId=newBatchId,
-            farmerId=farmerId,
-            hardwareId=hardwareId,
-            fruitType=fruitType,
-            weight=weight,
-            location=location
+        val request = CreateBatchRequest(
+            farmerUid = farmerUid,
+            vehicleId = vehicleId,
+            cropType = cropType,
+            cropQuantityKg = quantity,
+            originLocation = originLocation
         )
 
-        _batches.value=_batches.value+batch
+        viewModelScope.launch {
 
-        latestBatchId=newBatchId
+            val result = repository.createBatch(request)
+
+            _batchState.value = result
+
+            if (result is ApiResult.Success) {
+                latestBatchId = result.data.id
+                _batches.value = _batches.value + result.data
+            }
+        }
     }
 
-    fun addCrate(
-        batchId:String,
-        crateId:String,
-        condition:String,
-        timestamp:String
-    ){
+    // ----------------------------
+    // ATTACH CRATE
+    // ----------------------------
 
-        val crate=Crate(
-            crateId=crateId,
-            batchId=batchId,
-            condition=condition,
-            timestamp=timestamp
+    fun attachCrate(
+        batchId: String,
+        qrCode: String,
+        condition: String
+    ) {
+
+        val request = AttachCrateRequest(
+            batchId = batchId,
+            qrCode = qrCode,
+            condition = condition
         )
 
-        _crates.value=_crates.value+crate
+        viewModelScope.launch {
+
+            val result = repository.attachCrate(request)
+
+            _crateState.value = result
+
+            if (result is ApiResult.Success) {
+                _crates.value = _crates.value + request
+            }
+        }
     }
 }

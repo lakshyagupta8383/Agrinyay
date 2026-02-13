@@ -1,5 +1,4 @@
 package com.example.agrinyay.navigation
-import com.example.agrinyay.viewmodel.VehicleViewModel
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -10,6 +9,7 @@ import androidx.navigation.navArgument
 import com.example.agrinyay.ui.auth.*
 import com.example.agrinyay.ui.farmer.*
 import com.example.agrinyay.viewmodel.BatchViewModel
+import com.example.agrinyay.viewmodel.VehicleViewModel
 
 @Composable
 fun RootNavGraph() {
@@ -42,31 +42,6 @@ fun RootNavGraph() {
             startDestination = "farmer_home/{farmerId}",
             route = "farmer_graph"
         ) {
-            composable(
-                route = "create_vehicle/{farmerId}",
-                arguments = listOf(
-                    navArgument("farmerId") { type = NavType.StringType }
-                )
-            ) { backStackEntry ->
-
-                val farmerId =
-                    backStackEntry.arguments?.getString("farmerId") ?: ""
-
-                val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry("farmer_graph")
-                }
-
-                val vehicleViewModel: VehicleViewModel =
-                    viewModel(parentEntry)
-
-                CreateVehicleScreen(
-                    navController = navController,
-                    farmerId = farmerId,
-                    viewModel = vehicleViewModel
-                )
-
-            }
-
 
             composable(
                 route = "farmer_home/{farmerId}",
@@ -106,52 +81,21 @@ fun RootNavGraph() {
                     farmerId = farmerId,
                     viewModel = vehicleViewModel
                 )
-
             }
 
             composable(
-                route = "my_batches/{farmerId}/{hardwareId}",
+                route = "create_batch/{farmerUid}/{vehicleId}",
                 arguments = listOf(
-                    navArgument("farmerId") { type = NavType.StringType },
-                    navArgument("hardwareId") { type = NavType.StringType }
+                    navArgument("farmerUid") { type = NavType.StringType },
+                    navArgument("vehicleId") { type = NavType.StringType }
                 )
             ) { backStackEntry ->
 
-                val farmerId =
-                    backStackEntry.arguments?.getString("farmerId") ?: ""
+                val farmerUid =
+                    backStackEntry.arguments?.getString("farmerUid") ?: ""
 
-                val hardwareId =
-                    backStackEntry.arguments?.getString("hardwareId") ?: ""
-
-                val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry("farmer_graph")
-                }
-
-                val batchViewModel: BatchViewModel =
-                    viewModel(parentEntry)
-
-                MyBatchesScreen(
-                    navController = navController,
-                    farmerId = farmerId,
-                    hardwareId = hardwareId,
-                    viewModel = batchViewModel
-                )
-            }
-
-
-            composable(
-                route = "create_batch/{farmerId}/{hardwareId}",
-                arguments = listOf(
-                    navArgument("farmerId") { type = NavType.StringType },
-                    navArgument("hardwareId") { type = NavType.StringType }
-                )
-            ) { backStackEntry ->
-
-                val farmerId =
-                    backStackEntry.arguments?.getString("farmerId") ?: ""
-
-                val hardwareId =
-                    backStackEntry.arguments?.getString("hardwareId") ?: ""
+                val vehicleId =
+                    backStackEntry.arguments?.getString("vehicleId") ?: ""
 
                 val parentEntry = remember(backStackEntry) {
                     navController.getBackStackEntry("farmer_graph")
@@ -162,22 +106,41 @@ fun RootNavGraph() {
 
                 CreateBatchScreen(
                     navController = navController,
-                    farmerId = farmerId,
-                    hardwareId = hardwareId,
+                    farmerUid = farmerUid,
+                    vehicleId = vehicleId,
                     viewModel = batchViewModel
                 )
             }
-
             composable(
-                route = "batch_detail/{farmerId}/{batchId}",
+                route = "create_vehicle/{farmerId}",
                 arguments = listOf(
-                    navArgument("farmerId") { type = NavType.StringType },
-                    navArgument("batchId") { type = NavType.StringType }
+                    navArgument("farmerId") { type = NavType.StringType }
                 )
             ) { backStackEntry ->
 
                 val farmerId =
                     backStackEntry.arguments?.getString("farmerId") ?: ""
+
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry("farmer_graph")
+                }
+
+                val vehicleViewModel: VehicleViewModel =
+                    viewModel(parentEntry)
+
+                CreateVehicleScreen(
+                    navController = navController,
+                    farmerId = farmerId,
+                    viewModel = vehicleViewModel
+                )
+            }
+
+            composable(
+                route = "batch_detail/{batchId}",
+                arguments = listOf(
+                    navArgument("batchId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
 
                 val batchId =
                     backStackEntry.arguments?.getString("batchId") ?: ""
@@ -191,25 +154,24 @@ fun RootNavGraph() {
 
                 BatchDetailScreen(
                     navController = navController,
-                    farmerId = farmerId,
                     batchId = batchId,
                     viewModel = batchViewModel
                 )
             }
 
             composable(
-                route = "scan_attach/{farmerId}/{batchId}",
+                route = "my_batches/{farmerUid}/{vehicleId}",
                 arguments = listOf(
-                    navArgument("farmerId") { type = NavType.StringType },
-                    navArgument("batchId") { type = NavType.StringType }
+                    navArgument("farmerUid") { type = NavType.StringType },
+                    navArgument("vehicleId") { type = NavType.StringType }
                 )
             ) { backStackEntry ->
 
-                val farmerId =
-                    backStackEntry.arguments?.getString("farmerId") ?: ""
+                val farmerUid =
+                    backStackEntry.arguments?.getString("farmerUid") ?: ""
 
-                val batchId =
-                    backStackEntry.arguments?.getString("batchId") ?: ""
+                val vehicleId =
+                    backStackEntry.arguments?.getString("vehicleId") ?: ""
 
                 val parentEntry = remember(backStackEntry) {
                     navController.getBackStackEntry("farmer_graph")
@@ -218,25 +180,22 @@ fun RootNavGraph() {
                 val batchViewModel: BatchViewModel =
                     viewModel(parentEntry)
 
-                ScanAttachScreen(
+                MyBatchesScreen(
                     navController = navController,
-                    farmerId = farmerId,
-                    batchId = batchId,
+                    farmerUid = farmerUid,
+                    vehicleId = vehicleId,
                     viewModel = batchViewModel
                 )
+
             }
 
             composable(
-                route = "scan_result/{farmerId}/{batchId}/{crateId}",
+                route = "scan_result/{batchId}/{crateId}",
                 arguments = listOf(
-                    navArgument("farmerId") { type = NavType.StringType },
                     navArgument("batchId") { type = NavType.StringType },
                     navArgument("crateId") { type = NavType.StringType }
                 )
             ) { backStackEntry ->
-
-                val farmerId =
-                    backStackEntry.arguments?.getString("farmerId") ?: ""
 
                 val batchId =
                     backStackEntry.arguments?.getString("batchId") ?: ""
@@ -253,7 +212,6 @@ fun RootNavGraph() {
 
                 ScanResultScreen(
                     navController = navController,
-                    farmerId = farmerId,
                     batchId = batchId,
                     crateId = crateId,
                     viewModel = batchViewModel
