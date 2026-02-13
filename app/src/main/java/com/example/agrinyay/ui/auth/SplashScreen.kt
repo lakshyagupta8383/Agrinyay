@@ -1,38 +1,73 @@
 package com.example.agrinyay.ui.auth
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.agrinyay.viewmodel.AuthResult
-import com.example.agrinyay.viewmodel.AuthViewModel
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(navController:NavController){
+fun SplashScreen(navController: NavController) {
 
-    val viewModel:AuthViewModel=viewModel()
-    val state by viewModel.authState.collectAsState()
+    val gradient = Brush.verticalGradient(
+        colors = listOf(
+            Color(0xFFE8F5E9),
+            Color(0xFFF1F8E9),
+            Color.White
+        )
+    )
 
-    LaunchedEffect(Unit){
-        delay(1000)
-        viewModel.checkCurrentUser()
+    LaunchedEffect(Unit) {
+
+        delay(1500)
+
+        val currentUser = FirebaseAuth.getInstance().currentUser
+
+        if (currentUser != null) {
+
+            navController.navigate("farmer_home/${currentUser.uid}") {
+                popUpTo("splash") { inclusive = true }
+            }
+
+        } else {
+
+            navController.navigate("login") {
+                popUpTo("splash") { inclusive = true }
+            }
+        }
     }
 
-    LaunchedEffect(state){
-        when(state){
-            is AuthResult.Farmer -> {
-                val farmerId = (state as AuthResult.Farmer).uid
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(gradient),
+        contentAlignment = Alignment.Center
+    ) {
 
-                navController.navigate("my_batches/$farmerId") {
-                    popUpTo("splash") { inclusive = true }
-                }
-            }
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
 
-            is AuthResult.Idle->{
-                navController.navigate("auth_graph"){
-                    popUpTo("splash"){ inclusive=true }
-                }
-            }
-            else->{}
+            Text(
+                text = "AgriNyay 🌾",
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                text = "Smart Quality. Fair Price.",
+                color = Color(0xFF4E6E58)
+            )
         }
     }
 }

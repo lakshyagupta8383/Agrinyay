@@ -11,8 +11,13 @@ class AuthRepository {
 
     fun getCurrentUser() = auth.currentUser
 
-    suspend fun login(email: String, password: String): Result<String> {
+    suspend fun login(
+        email: String,
+        password: String
+    ): Result<String> {
+
         return try {
+
             val result = auth
                 .signInWithEmailAndPassword(email, password)
                 .await()
@@ -20,8 +25,34 @@ class AuthRepository {
             val uid = result.user?.uid
                 ?: return Result.failure(Exception("User not found"))
 
-            val role = getUserRole(uid)
-            Result.success(role)
+            Result.success(uid)
+
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun signup(
+        email: String,
+        password: String,
+        role: String
+    ): Result<String> {
+
+        return try {
+
+            val result = auth
+                .createUserWithEmailAndPassword(email, password)
+                .await()
+
+            val uid = result.user?.uid
+                ?: return Result.failure(Exception("User not created"))
+
+            firestore.collection("users")
+                .document(uid)
+                .set(mapOf("role" to role))
+                .await()
+
+            Result.success(uid)
 
         } catch (e: Exception) {
             Result.failure(e)
@@ -29,6 +60,7 @@ class AuthRepository {
     }
 
     suspend fun getUserRole(uid: String): String {
+
         val snapshot = firestore
             .collection("users")
             .document(uid)

@@ -1,4 +1,5 @@
 package com.example.agrinyay.navigation
+import com.example.agrinyay.viewmodel.VehicleViewModel
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -38,21 +39,89 @@ fun RootNavGraph() {
         }
 
         navigation(
-            startDestination = "my_batches/{farmerId}",
+            startDestination = "farmer_home/{farmerId}",
             route = "farmer_graph"
         ) {
-
             composable(
-                route = "my_batches/{farmerId}",
+                route = "create_vehicle/{farmerId}",
                 arguments = listOf(
-                    navArgument("farmerId") {
-                        type = NavType.StringType
-                    }
+                    navArgument("farmerId") { type = NavType.StringType }
                 )
             ) { backStackEntry ->
 
                 val farmerId =
                     backStackEntry.arguments?.getString("farmerId") ?: ""
+
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry("farmer_graph")
+                }
+
+                val vehicleViewModel: VehicleViewModel =
+                    viewModel(parentEntry)
+
+                CreateVehicleScreen(
+                    navController = navController,
+                    farmerId = farmerId,
+                    viewModel = vehicleViewModel
+                )
+
+            }
+
+
+            composable(
+                route = "farmer_home/{farmerId}",
+                arguments = listOf(
+                    navArgument("farmerId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+
+                val farmerId =
+                    backStackEntry.arguments?.getString("farmerId") ?: ""
+
+                FarmerHomeScreen(
+                    navController = navController,
+                    farmerId = farmerId
+                )
+            }
+
+            composable(
+                route = "vehicles/{farmerId}",
+                arguments = listOf(
+                    navArgument("farmerId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+
+                val farmerId =
+                    backStackEntry.arguments?.getString("farmerId") ?: ""
+
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry("farmer_graph")
+                }
+
+                val vehicleViewModel: VehicleViewModel =
+                    viewModel(parentEntry)
+
+                VehiclesScreen(
+                    navController = navController,
+                    farmerId = farmerId,
+                    viewModel = vehicleViewModel
+                )
+
+            }
+
+            composable(
+                route = "my_batches/{farmerId}/{hardwareId}",
+                arguments = listOf(
+                    navArgument("farmerId") { type = NavType.StringType },
+                    navArgument("hardwareId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+
+                val farmerId =
+                    backStackEntry.arguments?.getString("farmerId") ?: ""
+
+                val hardwareId =
+                    backStackEntry.arguments?.getString("hardwareId") ?: ""
 
                 val parentEntry = remember(backStackEntry) {
                     navController.getBackStackEntry("farmer_graph")
@@ -64,21 +133,25 @@ fun RootNavGraph() {
                 MyBatchesScreen(
                     navController = navController,
                     farmerId = farmerId,
+                    hardwareId = hardwareId,
                     viewModel = batchViewModel
                 )
             }
 
+
             composable(
-                route = "create_batch/{farmerId}",
+                route = "create_batch/{farmerId}/{hardwareId}",
                 arguments = listOf(
-                    navArgument("farmerId") {
-                        type = NavType.StringType
-                    }
+                    navArgument("farmerId") { type = NavType.StringType },
+                    navArgument("hardwareId") { type = NavType.StringType }
                 )
             ) { backStackEntry ->
 
                 val farmerId =
                     backStackEntry.arguments?.getString("farmerId") ?: ""
+
+                val hardwareId =
+                    backStackEntry.arguments?.getString("hardwareId") ?: ""
 
                 val parentEntry = remember(backStackEntry) {
                     navController.getBackStackEntry("farmer_graph")
@@ -90,6 +163,7 @@ fun RootNavGraph() {
                 CreateBatchScreen(
                     navController = navController,
                     farmerId = farmerId,
+                    hardwareId = hardwareId,
                     viewModel = batchViewModel
                 )
             }
@@ -181,11 +255,10 @@ fun RootNavGraph() {
                     navController = navController,
                     farmerId = farmerId,
                     batchId = batchId,
-                    crateId = crateId,   // ← THIS MUST EXIST
+                    crateId = crateId,
                     viewModel = batchViewModel
                 )
             }
-
         }
     }
 }
