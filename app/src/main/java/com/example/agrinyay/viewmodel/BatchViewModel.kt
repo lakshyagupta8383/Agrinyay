@@ -1,47 +1,66 @@
 package com.example.agrinyay.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.example.agrinyay.repository.BatchRepository
+import com.example.agrinyay.data.model.Crate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
+import java.util.UUID
 
-sealed class BatchState{
-    object Idle:BatchState()
-    object Loading:BatchState()
-    data class Success(val batchId:String):BatchState()
-    data class Error(val message:String):BatchState()
-}
+data class Batch(
+    val batchId: String,
+    val farmerId: String,
+    val fruitType: String,
+    val weight: String,
+    val location: String
+)
 
-class BatchViewModel:ViewModel(){
+class BatchViewModel : ViewModel() {
 
-    private val repository=BatchRepository()
+    private val _batches = MutableStateFlow<List<Batch>>(emptyList())
+    val batches: StateFlow<List<Batch>> = _batches
 
-    private val _state=MutableStateFlow<BatchState>(BatchState.Idle)
-    val state:StateFlow<BatchState> = _state
+    private val _crates = MutableStateFlow<List<Crate>>(emptyList())
+    val crates: StateFlow<List<Crate>> = _crates
 
     fun createBatch(
-        farmerId:String,
-        crateId:String,
-        crop:String,
-        quantity:String
-    ){
-        viewModelScope.launch{
-            _state.value=BatchState.Loading
+        farmerId: String,
+        fruitType: String,
+        weight: String,
+        location: String
+    ) {
 
-            val result=repository.createBatch(
-                farmerId,
-                crateId,
-                crop,
-                quantity
-            )
+        val batchId = UUID.randomUUID().toString()
 
-            result.onSuccess{
-                _state.value=BatchState.Success(it)
-            }.onFailure{
-                _state.value=BatchState.Error(it.message ?: "Error")
-            }
-        }
+        val newBatch = Batch(
+            batchId = batchId,
+            farmerId = farmerId,
+            fruitType = fruitType,
+            weight = weight,
+            location = location
+        )
+
+        _batches.value = _batches.value + newBatch
     }
+
+    fun addCrate(
+        batchId: String,
+        crateId: String,
+        condition: String
+    ) {
+
+        val timestamp = System.currentTimeMillis()
+
+        val newCrate = Crate(
+            crateId = crateId,
+            batchId = batchId,
+            condition = condition,
+            timestamp = timestamp
+        )
+
+        _crates.value = _crates.value + newCrate
+    }
+
+    fun loadBatches(farmerId: String) {}
+
+    fun loadCrates(batchId: String) {}
 }

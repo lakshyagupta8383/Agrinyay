@@ -19,11 +19,14 @@ fun SplashScreen(navController:NavController){
 
     LaunchedEffect(state){
         when(state){
-            is AuthResult.Farmer->{
-                navController.navigate("farmer_graph"){
-                    popUpTo("splash"){ inclusive=true }
+            is AuthResult.Farmer -> {
+                val farmerId = (state as AuthResult.Farmer).uid
+
+                navController.navigate("my_batches/$farmerId") {
+                    popUpTo("splash") { inclusive = true }
                 }
             }
+
             is AuthResult.Idle->{
                 navController.navigate("auth_graph"){
                     popUpTo("splash"){ inclusive=true }

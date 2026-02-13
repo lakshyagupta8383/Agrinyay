@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.agrinyay"
+    namespace="com.example.agrinyay"
     compileSdk = 36
 
     defaultConfig {
@@ -50,8 +50,15 @@ dependencies {
 
 // ML Kit Barcode
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
-
+// Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+// Coroutines support
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 // Guava (REQUIRED for CameraX)
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
     implementation("com.google.guava:guava:31.1-android")
     implementation("com.google.firebase:firebase-auth-ktx:23.0.0")
     implementation("com.google.firebase:firebase-firestore-ktx:25.0.0")

@@ -1,13 +1,14 @@
 package com.example.agrinyay.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import com.example.agrinyay.ui.auth.LoginScreen
-import com.example.agrinyay.ui.auth.SignupScreen
-import com.example.agrinyay.ui.auth.SplashScreen
+import com.example.agrinyay.ui.auth.*
 import com.example.agrinyay.ui.farmer.*
+import com.example.agrinyay.viewmodel.BatchViewModel
 
 @Composable
 fun RootNavGraph() {
@@ -19,17 +20,14 @@ fun RootNavGraph() {
         startDestination = "splash"
     ) {
 
-        // ---------------- Splash ----------------
         composable("splash") {
             SplashScreen(navController)
         }
 
-        // ---------------- Auth Graph ----------------
         navigation(
             startDestination = "login",
             route = "auth_graph"
         ) {
-
             composable("login") {
                 LoginScreen(navController)
             }
@@ -39,57 +37,155 @@ fun RootNavGraph() {
             }
         }
 
-        // ---------------- Farmer Graph ----------------
         navigation(
-            startDestination = "farmer_home",
+            startDestination = "my_batches/{farmerId}",
             route = "farmer_graph"
         ) {
 
-            composable("farmer_home") {
-                FarmerHomeScreen(navController)
-            }
-
-            composable("scan_attach") {
-                ScanAttachScreen(navController)
-            }
-
             composable(
-                route = "create_batch/{crateId}",
+                route = "my_batches/{farmerId}",
                 arguments = listOf(
-                    navArgument("crateId") {
+                    navArgument("farmerId") {
                         type = NavType.StringType
                     }
                 )
             ) { backStackEntry ->
 
-                val crateId =
-                    backStackEntry.arguments?.getString("crateId") ?: ""
+                val farmerId =
+                    backStackEntry.arguments?.getString("farmerId") ?: ""
 
-                CreateBatchScreen(
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry("farmer_graph")
+                }
+
+                val batchViewModel: BatchViewModel =
+                    viewModel(parentEntry)
+
+                MyBatchesScreen(
                     navController = navController,
-                    crateId = crateId
+                    farmerId = farmerId,
+                    viewModel = batchViewModel
                 )
             }
 
-            composable("my_batches") {
-                MyBatchesScreen(navController)
-            }
-        }
+            composable(
+                route = "create_batch/{farmerId}",
+                arguments = listOf(
+                    navArgument("farmerId") {
+                        type = NavType.StringType
+                    }
+                )
+            ) { backStackEntry ->
 
-        // ---------------- Batch Result ----------------
-        composable(
-            route = "batch_result/{batchId}",
-            arguments = listOf(
-                navArgument("batchId") {
-                    type = NavType.StringType
+                val farmerId =
+                    backStackEntry.arguments?.getString("farmerId") ?: ""
+
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry("farmer_graph")
                 }
-            )
-        ) { backStackEntry ->
 
-            val batchId =
-                backStackEntry.arguments?.getString("batchId") ?: ""
+                val batchViewModel: BatchViewModel =
+                    viewModel(parentEntry)
 
-            BatchResultScreen(batchId = batchId)
+                CreateBatchScreen(
+                    navController = navController,
+                    farmerId = farmerId,
+                    viewModel = batchViewModel
+                )
+            }
+
+            composable(
+                route = "batch_detail/{farmerId}/{batchId}",
+                arguments = listOf(
+                    navArgument("farmerId") { type = NavType.StringType },
+                    navArgument("batchId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+
+                val farmerId =
+                    backStackEntry.arguments?.getString("farmerId") ?: ""
+
+                val batchId =
+                    backStackEntry.arguments?.getString("batchId") ?: ""
+
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry("farmer_graph")
+                }
+
+                val batchViewModel: BatchViewModel =
+                    viewModel(parentEntry)
+
+                BatchDetailScreen(
+                    navController = navController,
+                    farmerId = farmerId,
+                    batchId = batchId,
+                    viewModel = batchViewModel
+                )
+            }
+
+            composable(
+                route = "scan_attach/{farmerId}/{batchId}",
+                arguments = listOf(
+                    navArgument("farmerId") { type = NavType.StringType },
+                    navArgument("batchId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+
+                val farmerId =
+                    backStackEntry.arguments?.getString("farmerId") ?: ""
+
+                val batchId =
+                    backStackEntry.arguments?.getString("batchId") ?: ""
+
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry("farmer_graph")
+                }
+
+                val batchViewModel: BatchViewModel =
+                    viewModel(parentEntry)
+
+                ScanAttachScreen(
+                    navController = navController,
+                    farmerId = farmerId,
+                    batchId = batchId,
+                    viewModel = batchViewModel
+                )
+            }
+
+            composable(
+                route = "scan_result/{farmerId}/{batchId}/{crateId}",
+                arguments = listOf(
+                    navArgument("farmerId") { type = NavType.StringType },
+                    navArgument("batchId") { type = NavType.StringType },
+                    navArgument("crateId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+
+                val farmerId =
+                    backStackEntry.arguments?.getString("farmerId") ?: ""
+
+                val batchId =
+                    backStackEntry.arguments?.getString("batchId") ?: ""
+
+                val crateId =
+                    backStackEntry.arguments?.getString("crateId") ?: ""
+
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry("farmer_graph")
+                }
+
+                val batchViewModel: BatchViewModel =
+                    viewModel(parentEntry)
+
+                ScanResultScreen(
+                    navController = navController,
+                    farmerId = farmerId,
+                    batchId = batchId,
+                    crateId = crateId,   // ← THIS MUST EXIST
+                    viewModel = batchViewModel
+                )
+            }
+
         }
     }
 }

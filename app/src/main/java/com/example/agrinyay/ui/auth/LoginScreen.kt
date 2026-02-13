@@ -36,7 +36,7 @@ fun LoginScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(Modifier.height(12.dp))
 
             TextField(
                 value = password,
@@ -45,7 +45,7 @@ fun LoginScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(Modifier.height(24.dp))
 
             Button(
                 onClick = {
@@ -57,7 +57,7 @@ fun LoginScreen(navController: NavController) {
             }
 
             if (state is AuthResult.Error) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(Modifier.height(12.dp))
                 Text(
                     text = (state as AuthResult.Error).message,
                     color = MaterialTheme.colorScheme.error
@@ -68,7 +68,10 @@ fun LoginScreen(navController: NavController) {
 
     LaunchedEffect(state) {
         if (state is AuthResult.Farmer) {
-            navController.navigate("farmer_graph") {
+
+            val farmerId = (state as AuthResult.Farmer).uid
+
+            navController.navigate("my_batches/$farmerId") {
                 popUpTo("auth_graph") { inclusive = true }
             }
         }

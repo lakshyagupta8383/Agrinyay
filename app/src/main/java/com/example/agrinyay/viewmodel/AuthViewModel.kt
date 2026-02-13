@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 
 sealed class AuthResult {
     object Idle : AuthResult()
-    object Farmer : AuthResult()
+    data class Farmer(val uid: String) : AuthResult()
     data class Error(val message: String) : AuthResult()
 }
 
@@ -17,46 +17,40 @@ class AuthViewModel : ViewModel() {
 
     private val repository = AuthRepository()
 
-    private val _authState = MutableStateFlow<AuthResult>(AuthResult.Idle)
+    private val _authState =
+        MutableStateFlow<AuthResult>(AuthResult.Idle)
     val authState: StateFlow<AuthResult> = _authState
+
     fun checkCurrentUser() {
+
         val user = repository.getCurrentUser()
 
         if (user == null) {
             _authState.value = AuthResult.Idle
         } else {
-            viewModelScope.launch {
-                try {
-                    val role = repository.getUserRole(user.uid)
-
-                    if (role == "farmer") {
-                        _authState.value = AuthResult.Farmer
-                    } else {
-                        _authState.value =
-                            AuthResult.Error("Not a farmer account")
-                    }
-
-                } catch (e: Exception) {
-                    _authState.value =
-                        AuthResult.Error(e.message ?: "Error")
-                }
-            }
+            _authState.value = AuthResult.Farmer(user.uid)
         }
     }
 
     fun login(email: String, password: String) {
+
         viewModelScope.launch {
+
             try {
                 val result = repository.login(email, password)
 
                 if (result.isSuccess) {
-                    val role = result.getOrNull()
-                    if (role == "farmer") {
-                        _authState.value = AuthResult.Farmer
+
+                    val user = repository.getCurrentUser()
+
+                    if (user != null) {
+                        _authState.value =
+                            AuthResult.Farmer(user.uid)
                     } else {
                         _authState.value =
-                            AuthResult.Error("Not a farmer account")
+                            AuthResult.Error("User not found")
                     }
+
                 } else {
                     _authState.value =
                         AuthResult.Error(

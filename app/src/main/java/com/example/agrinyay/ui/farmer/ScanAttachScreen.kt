@@ -1,117 +1,105 @@
 package com.example.agrinyay.ui.farmer
-import android.Manifest
-import android.util.Size
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import com.example.agrinyay.viewmodel.BatchViewModel
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
 
 @Composable
-fun ScanAttachScreen(navController: NavController) {
+fun ScanAttachScreen(
+    navController: NavController,
+    farmerId: String,
+    batchId: String,
+    viewModel: BatchViewModel
+) {
 
     val context = LocalContext.current
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-    val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-
-    var hasPermission by remember { mutableStateOf(false) }
-    var scanned by remember { mutableStateOf(false) }
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) {
-        hasPermission = it
-    }
-
-    LaunchedEffect(Unit) {
-        launcher.launch(Manifest.permission.CAMERA)
-    }
-
-    if (!hasPermission) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("Camera permission required")
-        }
-        return
-    }
+    val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
 
     AndroidView(
+        modifier = Modifier.fillMaxSize(),
         factory = { ctx ->
 
             val previewView = PreviewView(ctx)
-            val executor = Executors.newSingleThreadExecutor()
+
+            val cameraProviderFuture =
+                ProcessCameraProvider.getInstance(ctx)
 
             cameraProviderFuture.addListener({
 
-                val cameraProvider = cameraProviderFuture.get()
+                val cameraProvider =
+                    cameraProviderFuture.get()
 
                 val preview = Preview.Builder().build().also {
                     it.setSurfaceProvider(previewView.surfaceProvider)
                 }
 
-                val scanner = BarcodeScanning.getClient()
+                val barcodeScanner = BarcodeScanning.getClient()
 
-                val imageAnalyzer = ImageAnalysis.Builder()
-                    .setTargetResolution(Size(1280, 720))
-                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                    .build()
+                val imageAnalyzer =
+                    ImageAnalysis.Builder().build().also {
 
-                imageAnalyzer.setAnalyzer(executor) { imageProxy ->
+                        it.setAnalyzer(cameraExecutor) { imageProxy ->
 
-                    val mediaImage = imageProxy.image
-                    if (mediaImage != null && !scanned) {
+                            val mediaImage = imageProxy.image
+                            if (mediaImage != null) {
 
-                        val image = InputImage.fromMediaImage(
-                            mediaImage,
-                            imageProxy.imageInfo.rotationDegrees
-                        )
+                                val image = InputImage.fromMediaImage(
+                                    mediaImage,
+                                    imageProxy.imageInfo.rotationDegrees
+                                )
 
-                        scanner.process(image)
-                            .addOnSuccessListener { barcodes ->
+                                barcodeScanner.process(image)
+                                    .addOnSuccessListener { barcodes ->
 
-                                for (barcode in barcodes) {
+                                        for (barcode in barcodes) {
 
-                                    val crateId = barcode.rawValue ?: ""
+                                            val crateId =
+                                                barcode.rawValue ?: ""
 
-                                    if (crateId.isNotEmpty()) {
-                                        scanned = true
-                                        navController.navigate("create_batch/$crateId")
+                                            if (crateId.isNotEmpty()) {
+
+                                                navController.navigate(
+                                                    "scan_result/$farmerId/$batchId/$crateId"
+                                                )
+
+                                                imageProxy.close()
+                                                return@addOnSuccessListener
+                                            }
+                                        }
                                     }
-                                }
-                            }
-                            .addOnCompleteListener {
+                                    .addOnFailureListener {
+                                        imageProxy.close()
+                                    }
+                            } else {
                                 imageProxy.close()
                             }
-                    } else {
-                        imageProxy.close()
+                        }
                     }
-                }
+
+                val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
-                    lifecycleOwner,
-                    CameraSelector.DEFAULT_BACK_CAMERA,
+                    context as androidx.lifecycle.LifecycleOwner,
+                    cameraSelector,
                     preview,
                     imageAnalyzer
                 )
 
-            }, ctx.mainExecutor)
+            }, ContextCompat.getMainExecutor(ctx))
 
             previewView
-        },
-        modifier = Modifier.fillMaxSize()
+        }
     )
 }
