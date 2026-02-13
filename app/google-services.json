@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1001779004695",
+    "project_id": "agrinyay",
+    "storage_bucket": "agrinyay.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1001779004695:android:4a23f96353d9686ca16352",
+        "android_client_info": {
+          "package_name": "com.example.agrinyay"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCroCZKbYEGxFg978DDyCHbQH-CwpxGSxc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
