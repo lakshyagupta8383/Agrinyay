@@ -1,14 +1,28 @@
 package com.example.agrinyay.repository
 
+import com.example.agrinyay.data.model.DashboardResponse
 import com.example.agrinyay.data.remote.RetrofitClient
-import com.example.agrinyay.data.remote.safeApiCall
+import com.example.agrinyay.utils.ApiResult
 
 class DashboardRepository {
 
-    private val api = RetrofitClient.api
+    suspend fun getDashboard(
+        farmerId: String
+    ): ApiResult<DashboardResponse> {
 
-    suspend fun getDashboard(farmerId:String) =
-        safeApiCall {
-            api.getDashboard(farmerId)
+        return try {
+
+            val response =
+                RetrofitClient.api.getDashboard(farmerId)
+
+            if (response.isSuccessful && response.body() != null) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                ApiResult.Error("Error fetching dashboard")
+            }
+
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Unknown error")
         }
+    }
 }

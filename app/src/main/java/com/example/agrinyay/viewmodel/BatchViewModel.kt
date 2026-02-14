@@ -7,18 +7,14 @@ import com.example.agrinyay.data.model.CreateBatchResponse
 import com.example.agrinyay.data.model.AttachCrateRequest
 import com.example.agrinyay.repository.AgriRepository
 import com.example.agrinyay.utils.ApiResult
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-
 class BatchViewModel : ViewModel() {
 
     private val repository = AgriRepository()
-
-    // ----------------------------
-    // LOCAL UI LISTS
-    // ----------------------------
 
     private val _batches =
         MutableStateFlow(emptyList<CreateBatchResponse>())
@@ -27,10 +23,6 @@ class BatchViewModel : ViewModel() {
     private val _crates =
         MutableStateFlow(emptyList<AttachCrateRequest>())
     val crates: StateFlow<List<AttachCrateRequest>> = _crates
-
-    // ----------------------------
-    // API STATES
-    // ----------------------------
 
     private val _batchState =
         MutableStateFlow<ApiResult<CreateBatchResponse>?>(null)
@@ -43,12 +35,7 @@ class BatchViewModel : ViewModel() {
     var latestBatchId: String? = null
         private set
 
-    // ----------------------------
-    // CREATE BATCH
-    // ----------------------------
-
     fun createBatch(
-        farmerUid: String,
         vehicleId: String,
         cropType: String,
         quantity: Int,
@@ -56,29 +43,34 @@ class BatchViewModel : ViewModel() {
     ) {
 
         val request = CreateBatchRequest(
-            farmerUid = farmerUid,
             vehicleId = vehicleId,
             cropType = cropType,
             cropQuantityKg = quantity,
             originLocation = originLocation
         )
 
-        viewModelScope.launch {
+        FirebaseAuth.getInstance().currentUser
+            ?.getIdToken(true)
+            ?.addOnSuccessListener { result ->
 
-            val result = repository.createBatch(request)
+                val token = "Bearer ${result.token}"
 
-            _batchState.value = result
+                viewModelScope.launch {
 
-            if (result is ApiResult.Success) {
-                latestBatchId = result.data.batchId
-                _batches.value = _batches.value + result.data
+                    val apiResult = repository.createBatch(
+                        token = token,
+                        request = request
+                    )
+
+                    _batchState.value = apiResult
+
+                    if (apiResult is ApiResult.Success) {
+                        latestBatchId = apiResult.data.batchId
+                        _batches.value = _batches.value + apiResult.data
+                    }
+                }
             }
-        }
     }
-
-    // ----------------------------
-    // ATTACH CRATE
-    // ----------------------------
 
     fun attachCrate(
         batchId: String,

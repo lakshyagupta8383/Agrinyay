@@ -1,31 +1,32 @@
 package com.example.agrinyay.data.remote
 
-import retrofit2.http.GET
-import retrofit2.http.Path
-import retrofit2.http.Body
-import retrofit2.http.POST
+import com.example.agrinyay.data.model.CreateBatchRequest
+import com.example.agrinyay.data.model.CreateBatchResponse
+import com.example.agrinyay.data.model.AttachCrateRequest
+import com.example.agrinyay.data.model.DashboardResponse
 import retrofit2.Response
-import com.example.agrinyay.data.model.*
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface BackendApi {
 
-    @POST("api/v1/vehicles")
-    suspend fun createVehicle(
-        @Body request:CreateVehicleRequest
-    ):Response<GenericResponse<Unit>>
-
-    @POST("api/v1/batches")
+    @POST("api/batches")
     suspend fun createBatch(
-        @Body request:CreateBatchRequest
-    ):Response<GenericResponse<CreateBatchResponse>>
+        @Header("Authorization") token: String,
+        @Header("Content-Type") contentType: String = "application/json",
+        @Body request: CreateBatchRequest
+    ): Response<CreateBatchResponse>
 
-    @POST("api/v1/crates/attach")
+    @POST("api/crates")
     suspend fun attachCrate(
-        @Body request:AttachCrateRequest
-    ):Response<GenericResponse<Unit>>
+        @Body request: AttachCrateRequest
+    ): Response<Unit>
 
-    @GET("farmer/dashboard/{farmerId}")
+    @GET("api/dashboard/{farmerId}")
     suspend fun getDashboard(
-        @Path("farmerId") farmerId:String
-    ):Response<GenericResponse<DashboardResponse>>
+        @Path("farmerId") farmerId: String
+    ): Response<DashboardResponse>
 }

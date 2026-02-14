@@ -1,19 +1,48 @@
 package com.example.agrinyay.viewmodel
 
-import androidx.compose.runtime.*
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.agrinyay.data.local.HardwareDataStore
 import com.example.agrinyay.model.Vehicle
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
-class VehicleViewModel:ViewModel(){
+class VehicleViewModel(application: Application) : AndroidViewModel(application) {
 
-    var vehicleList by mutableStateOf<List<Vehicle>>(emptyList())
-        private set
+    private val dataStore = HardwareDataStore(application.applicationContext)
 
-    fun addVehicle(hardwareId:String){
-        val vehicle=Vehicle(hardwareId)
-        vehicleList=vehicleList+vehicle
+    private val _vehicleList = MutableStateFlow<List<Vehicle>>(emptyList())
+    val vehicleList: StateFlow<List<Vehicle>> = _vehicleList
 
-        // TODO: Call backend API here
-        // send farmerId + hardwareId
+    private val _selectedHardwareId = MutableStateFlow<String?>(null)
+    val selectedHardwareId: StateFlow<String?> = _selectedHardwareId
+
+    init {
+        loadHardware()
+    }
+
+    private fun loadHardware() {
+        viewModelScope.launch {
+            dataStore.getHardwareIds().collect { ids ->
+                _vehicleList.value = ids.map { Vehicle(it) }
+            }
+        }
+    }
+
+    fun addVehicle(hardwareId: String) {
+        viewModelScope.launch {
+            dataStore.saveHardwareId(hardwareId)
+        }
+        _selectedHardwareId.value = hardwareId
+    }
+
+    fun selectHardware(hardwareId: String) {
+        _selectedHardwareId.value = hardwareId
+    }
+
+    fun getCurrentHardwareId(): String? {
+        return _selectedHardwareId.value
     }
 }

@@ -29,6 +29,7 @@ fun RootNavGraph() {
             startDestination = "login",
             route = "auth_graph"
         ) {
+
             composable("login") {
                 LoginScreen(navController)
             }
@@ -74,7 +75,7 @@ fun RootNavGraph() {
                 }
 
                 val vehicleViewModel: VehicleViewModel =
-                    viewModel(parentEntry)
+                    viewModel(viewModelStoreOwner = parentEntry)
 
                 VehiclesScreen(
                     navController = navController,
@@ -102,7 +103,7 @@ fun RootNavGraph() {
                 }
 
                 val batchViewModel: BatchViewModel =
-                    viewModel(parentEntry)
+                    viewModel(viewModelStoreOwner = parentEntry)
 
                 CreateBatchScreen(
                     navController = navController,
@@ -111,6 +112,7 @@ fun RootNavGraph() {
                     viewModel = batchViewModel
                 )
             }
+
             composable(
                 route = "create_vehicle/{farmerId}",
                 arguments = listOf(
@@ -126,7 +128,7 @@ fun RootNavGraph() {
                 }
 
                 val vehicleViewModel: VehicleViewModel =
-                    viewModel(parentEntry)
+                    viewModel(viewModelStoreOwner = parentEntry)
 
                 CreateVehicleScreen(
                     navController = navController,
@@ -150,7 +152,7 @@ fun RootNavGraph() {
                 }
 
                 val batchViewModel: BatchViewModel =
-                    viewModel(parentEntry)
+                    viewModel(viewModelStoreOwner = parentEntry)
 
                 BatchDetailScreen(
                     navController = navController,
@@ -178,7 +180,7 @@ fun RootNavGraph() {
                 }
 
                 val batchViewModel: BatchViewModel =
-                    viewModel(parentEntry)
+                    viewModel(viewModelStoreOwner = parentEntry)
 
                 MyBatchesScreen(
                     navController = navController,
@@ -186,7 +188,6 @@ fun RootNavGraph() {
                     vehicleId = vehicleId,
                     viewModel = batchViewModel
                 )
-
             }
 
             composable(
@@ -208,7 +209,7 @@ fun RootNavGraph() {
                 }
 
                 val batchViewModel: BatchViewModel =
-                    viewModel(parentEntry)
+                    viewModel(viewModelStoreOwner = parentEntry)
 
                 ScanResultScreen(
                     navController = navController,

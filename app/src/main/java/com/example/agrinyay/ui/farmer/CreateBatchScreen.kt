@@ -99,7 +99,7 @@ fun CreateBatchScreen(
                                 ) {
 
                                     viewModel.createBatch(
-                                        farmerUid = farmerUid,
+
                                         vehicleId = vehicleId,
                                         cropType = fruitType,
                                         quantity = weight.toInt(),

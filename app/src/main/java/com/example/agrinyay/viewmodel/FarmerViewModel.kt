@@ -15,8 +15,8 @@ class FarmerViewModel : ViewModel() {
 
     private val repository = DashboardRepository()
 
-    private val _dashboardState =
-        MutableStateFlow<ApiResult<DashboardResponse>>(ApiResult.Loading)
+    private val _dashboardState: MutableStateFlow<ApiResult<DashboardResponse>> =
+        MutableStateFlow(ApiResult.Loading)
 
     val dashboardState: StateFlow<ApiResult<DashboardResponse>> =
         _dashboardState
