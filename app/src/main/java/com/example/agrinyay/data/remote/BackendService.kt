@@ -1,14 +1,17 @@
 package com.example.agrinyay.data.remote
 
-import com.example.agrinyay.data.model.*
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
-interface BackendService {
+object BackendService {
 
-    suspend fun createBatch(
-        request:CreateBatchRequest
-    ):GenericResponse<CreateBatchResponse>
+    private const val BASE_URL = "http://YOUR_BACKEND_URL/"
 
-    suspend fun attachCrate(
-        request:AttachCrateRequest
-    ):GenericResponse<Unit>
+    val api: BackendApi by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(BackendApi::class.java)
+    }
 }

@@ -5,11 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.example.agrinyay.data.model.CreateBatchRequest
 import com.example.agrinyay.data.model.CreateBatchResponse
 import com.example.agrinyay.data.model.AttachCrateRequest
-import com.example.agrinyay.data.repository.AgriRepository
-import com.example.agrinyay.util.ApiResult
+import com.example.agrinyay.repository.AgriRepository
+import com.example.agrinyay.utils.ApiResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+
 
 class BatchViewModel : ViewModel() {
 
@@ -69,7 +70,7 @@ class BatchViewModel : ViewModel() {
             _batchState.value = result
 
             if (result is ApiResult.Success) {
-                latestBatchId = result.data.id
+                latestBatchId = result.data.batchId
                 _batches.value = _batches.value + result.data
             }
         }

@@ -1,9 +1,11 @@
 package com.example.agrinyay.data.remote
 
-import com.example.agrinyay.data.model.*
-import retrofit2.Response
+import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Body
 import retrofit2.http.POST
+import retrofit2.Response
+import com.example.agrinyay.data.model.*
 
 interface BackendApi {
 
@@ -21,4 +23,9 @@ interface BackendApi {
     suspend fun attachCrate(
         @Body request:AttachCrateRequest
     ):Response<GenericResponse<Unit>>
+
+    @GET("farmer/dashboard/{farmerId}")
+    suspend fun getDashboard(
+        @Path("farmerId") farmerId:String
+    ):Response<GenericResponse<DashboardResponse>>
 }

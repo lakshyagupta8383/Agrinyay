@@ -1,6 +1,8 @@
 package com.example.agrinyay.ui.farmer
 
 import androidx.compose.foundation.background
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,7 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.agrinyay.utils.ApiResult
+import com.example.agrinyay.viewmodel.FarmerViewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
@@ -25,12 +30,25 @@ import kotlinx.coroutines.launch
 @Composable
 fun FarmerHomeScreen(
     navController: NavController,
-    farmerId: String
+    farmerId: String,
+    viewModel: FarmerViewModel = viewModel()
 ) {
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var showLogoutDialog by remember { mutableStateOf(false) }
+
+    val dashboardState by viewModel.dashboardState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.startDashboardUpdates(farmerId)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.stopDashboardUpdates()
+        }
+    }
 
     val gradient = Brush.verticalGradient(
         colors = listOf(
@@ -43,7 +61,6 @@ fun FarmerHomeScreen(
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-
             ModalDrawerSheet {
 
                 Spacer(Modifier.height(40.dp))
@@ -51,23 +68,15 @@ fun FarmerHomeScreen(
                 NavigationDrawerItem(
                     label = { Text("Profile") },
                     selected = false,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                    },
-                    icon = {
-                        Icon(Icons.Default.Person, contentDescription = null)
-                    }
+                    onClick = { scope.launch { drawerState.close() } },
+                    icon = { Icon(Icons.Default.Person, null) }
                 )
 
                 NavigationDrawerItem(
                     label = { Text("About App") },
                     selected = false,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                    },
-                    icon = {
-                        Icon(Icons.Default.Info, contentDescription = null)
-                    }
+                    onClick = { scope.launch { drawerState.close() } },
+                    icon = { Icon(Icons.Default.Info, null) }
                 )
 
                 NavigationDrawerItem(
@@ -77,9 +86,7 @@ fun FarmerHomeScreen(
                         showLogoutDialog = true
                         scope.launch { drawerState.close() }
                     },
-                    icon = {
-                        Icon(Icons.Default.Logout, contentDescription = null)
-                    }
+                    icon = { Icon(Icons.Default.Logout, null) }
                 )
             }
         }
@@ -90,15 +97,10 @@ fun FarmerHomeScreen(
                 TopAppBar(
                     title = { Text("AgriNyay 🌾") },
                     navigationIcon = {
-                        IconButton(
-                            onClick = {
-                                scope.launch { drawerState.open() }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = "Menu"
-                            )
+                        IconButton(onClick = {
+                            scope.launch { drawerState.open() }
+                        }) {
+                            Icon(Icons.Default.Menu, contentDescription = "Menu")
                         }
                     }
                 )
@@ -115,11 +117,10 @@ fun FarmerHomeScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .padding(horizontal = 24.dp)
                 ) {
 
-                    Spacer(Modifier.height(80.dp))
+                    Spacer(Modifier.height(40.dp))
 
                     DashboardCard(
                         title = "LOAD CROPS",
@@ -127,6 +128,100 @@ fun FarmerHomeScreen(
                         icon = Icons.Default.Inventory
                     ) {
                         navController.navigate("vehicles/$farmerId")
+                    }
+
+                    Spacer(Modifier.height(32.dp))
+
+                    Text(
+                        text = "Live Vehicle Status",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+
+                    Spacer(Modifier.height(16.dp))
+
+                    when (dashboardState) {
+
+                        is ApiResult.Loading -> {
+                            CircularProgressIndicator()
+                        }
+
+                        is ApiResult.Error -> {
+                            Text("Failed to load dashboard")
+                        }
+
+                        is ApiResult.Success -> {
+
+                            val data =
+                                (dashboardState as ApiResult.Success).data
+
+                            data.vehicles.forEach { vehicle ->
+
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 16.dp),
+                                    shape = RoundedCornerShape(20.dp)
+                                ) {
+
+                                    Column(
+                                        modifier = Modifier.padding(16.dp)
+                                    ) {
+
+                                        Text(
+                                            "Vehicle: ${vehicle.hardwareId}",
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
+
+                                        Spacer(Modifier.height(6.dp))
+
+                                        Text("Temp: ${vehicle.currentTemp}°C")
+                                        Text("Humidity: ${vehicle.currentHumidity}%")
+
+                                        Spacer(Modifier.height(12.dp))
+
+                                        vehicle.batches.forEach { batch ->
+
+                                            Text(
+                                                "Batch: ${batch.batchId}",
+                                                style = MaterialTheme.typography.bodyLarge
+                                            )
+
+                                            Spacer(Modifier.height(6.dp))
+
+                                            batch.crates.forEach { crate ->
+
+                                                val color = when {
+                                                    crate.qualityScore >= 80 -> Color(
+                                                        0xFF2E7D32
+                                                    )
+
+                                                    crate.qualityScore >= 60 -> Color(
+                                                        0xFFF9A825
+                                                    )
+
+                                                    else -> Color.Red
+                                                }
+
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                ) {
+                                                    Text("Crate ${crate.crateId}")
+                                                    Text(
+                                                        "Q: ${crate.qualityScore}",
+                                                        color = color
+                                                    )
+                                                }
+
+                                                Spacer(Modifier.height(4.dp))
+                                            }
+
+                                            Spacer(Modifier.height(8.dp))
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -140,27 +235,18 @@ fun FarmerHomeScreen(
                 confirmButton = {
                     TextButton(
                         onClick = {
-
                             showLogoutDialog = false
-
                             FirebaseAuth.getInstance().signOut()
-
                             navController.navigate("login") {
                                 popUpTo("splash") { inclusive = true }
                             }
                         }
-                    ) {
-                        Text("Yes")
-                    }
+                    ) { Text("Yes") }
                 },
                 dismissButton = {
                     TextButton(
-                        onClick = {
-                            showLogoutDialog = false
-                        }
-                    ) {
-                        Text("Cancel")
-                    }
+                        onClick = { showLogoutDialog = false }
+                    ) { Text("Cancel") }
                 }
             )
         }

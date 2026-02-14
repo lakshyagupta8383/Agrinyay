@@ -75,7 +75,7 @@ fun MyBatchesScreen(
                                     .padding(vertical = 10.dp)
                                     .clickable {
                                         navController.navigate(
-                                            "batch_detail/${batch.id}"
+                                            "batch_detail/${batch.batchId}"
                                         )
                                     },
                                 shape = RoundedCornerShape(24.dp),
