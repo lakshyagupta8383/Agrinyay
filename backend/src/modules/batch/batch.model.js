@@ -15,6 +15,9 @@ const batchSchema = new mongoose.Schema({
   },
   crop_quantity: {
     type: Number
+  },
+  hardware: {
+    type: String
   }
 }, { timestamps: true });
 

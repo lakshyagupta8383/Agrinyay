@@ -7,5 +7,7 @@ admin.initializeApp({
     privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
   }),
 });
-
+console.log("PROJECT:", process.env.FIREBASE_PROJECT_ID);
+console.log("EMAIL:", process.env.FIREBASE_CLIENT_EMAIL);
+console.log("PRIVATE KEY START:", process.env.FIREBASE_PRIVATE_KEY);
 module.exports = admin;

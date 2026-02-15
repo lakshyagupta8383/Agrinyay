@@ -5,6 +5,6 @@ const crateRoutes = require("./modules/crate/crate.routes");
 const router = express.Router();
 
 router.use("/batches", batchRoutes);
-router.use("/batches", crateRoutes);
+router.use("/batches/:batchId/crates", crateRoutes);
 
 module.exports = router;
