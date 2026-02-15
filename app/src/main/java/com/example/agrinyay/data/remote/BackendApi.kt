@@ -12,13 +12,10 @@ interface BackendApi {
         @Body request: CreateBatchRequest
     ): Response<CreateBatchResponse>
 
-    // ⚠️ CRITICAL: Use this if Lakshya adds 'router.get("/", ...)' to the batches route.
-    // The farmerId should likely be a QUERY parameter, not a path parameter,
-    // because the backend can get the UID from the token itself (req.user.uid).
     @GET("api/batches")
     suspend fun getBatches(
         @Header("Authorization") token: String,
-        @Query("farmerId") farmerId: String // Sending it as a query is safer/standard
+        @Query("farmerId") farmerId: String
     ): Response<GetBatchesResponse>
 
     @GET("api/dashboard/{farmerId}")
@@ -26,10 +23,17 @@ interface BackendApi {
         @Path("farmerId") farmerId: String
     ): Response<DashboardResponse>
 
-    @POST("api/crate/add/{batchId}")
+    @POST("api/batches/{batchId}/crates")
     suspend fun attachCrate(
         @Header("Authorization") token: String,
         @Path("batchId") batchId: String,
         @Body request: AttachCrateRequest
     ): Response<Unit>
+
+    // --- NEW METHOD ADDED HERE ---
+    @GET("api/batches/{batchId}/crates")
+    suspend fun getCrates(
+        @Header("Authorization") token: String,
+        @Path("batchId") batchId: String
+    ): Response<GetCratesResponse>
 }

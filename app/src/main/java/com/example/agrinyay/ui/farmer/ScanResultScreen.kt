@@ -41,7 +41,7 @@ fun ScanResultScreen(
 ) {
     var scannedCrateId by remember { mutableStateOf("") }
 
-    // FIX 1: Context definition moved OUTSIDE remember
+    // FIX: Context moved outside remember to avoid crash
     val context = LocalContext.current
 
     var hasCameraPermission by remember {
@@ -82,6 +82,7 @@ fun ScanResultScreen(
                 Text("Camera permission required", Modifier.align(Alignment.Center))
             }
         } else {
+            // This was missing!
             CrateFormUI(
                 batchId = batchId,
                 scannedCrateId = scannedCrateId,
@@ -95,6 +96,7 @@ fun ScanResultScreen(
     }
 }
 
+// --- MISSING FUNCTION ADDED BELOW ---
 @Composable
 fun CrateFormUI(
     batchId: String,
@@ -102,7 +104,7 @@ fun CrateFormUI(
     onCancel: () -> Unit,
     onSubmit: (String) -> Unit
 ) {
-    // FIX: Match backend Enums
+    // Matches Backend Enum ("RAW", "RIPPED", "SEMI-RIPPED")
     var selectedCondition by remember { mutableStateOf("RAW") }
     val conditions = listOf("RAW", "SEMI-RIPPED", "RIPPED")
 
@@ -137,7 +139,6 @@ fun CrateFormUI(
     }
 }
 
-// FIX 2: Added OptIn
 @OptIn(ExperimentalGetImage::class)
 @Composable
 fun CameraPreviewView(onBarcodeFound: (String) -> Unit) {

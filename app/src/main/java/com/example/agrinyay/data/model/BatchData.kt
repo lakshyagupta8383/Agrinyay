@@ -22,5 +22,6 @@ data class BatchData(
     val createdAt: String,
 
     @SerializedName("status")
-    val status: String = "Created"
+    val status: String = "Created",
+
 )
