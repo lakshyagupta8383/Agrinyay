@@ -6,21 +6,14 @@ import com.example.agrinyay.utils.ApiResult
 
 class DashboardRepository {
 
-    suspend fun getDashboard(
-        farmerId: String
-    ): ApiResult<DashboardResponse> {
-
+    suspend fun getDashboard(farmerId: String): ApiResult<DashboardResponse> {
         return try {
-
-            val response =
-                RetrofitClient.api.getDashboard(farmerId)
-
+            val response = RetrofitClient.api.getDashboard(farmerId)
             if (response.isSuccessful && response.body() != null) {
                 ApiResult.Success(response.body()!!)
             } else {
-                ApiResult.Error("Error fetching dashboard")
+                ApiResult.Error("Error: ${response.code()}")
             }
-
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Unknown error")
         }

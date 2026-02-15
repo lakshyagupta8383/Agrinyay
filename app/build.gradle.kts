@@ -15,7 +15,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.agrinyay"
-        buildConfigField("String","BASE_URL","\"http://10.0.2.2:5000/\"")
+        buildConfigField("String","BASE_URL","\"http://10.252.29.106:5000/\"")
         minSdk = 26
         targetSdk = 36
         versionCode = 1

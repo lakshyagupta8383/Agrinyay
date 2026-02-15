@@ -1,17 +1,15 @@
 package com.example.agrinyay.ui.farmer
 
 import androidx.compose.foundation.background
-import androidx.compose.runtime.collectAsState
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Inventory
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -40,10 +38,12 @@ fun FarmerHomeScreen(
 
     val dashboardState by viewModel.dashboardState.collectAsState()
 
+    // Start fetching live updates when screen opens
     LaunchedEffect(Unit) {
         viewModel.startDashboardUpdates(farmerId)
     }
 
+    // Stop updates when screen closes
     DisposableEffect(Unit) {
         onDispose {
             viewModel.stopDashboardUpdates()
@@ -62,7 +62,6 @@ fun FarmerHomeScreen(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
-
                 Spacer(Modifier.height(40.dp))
 
                 NavigationDrawerItem(
@@ -91,7 +90,6 @@ fun FarmerHomeScreen(
             }
         }
     ) {
-
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -113,7 +111,6 @@ fun FarmerHomeScreen(
                     .background(gradient)
                     .padding(padding)
             ) {
-
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -122,12 +119,14 @@ fun FarmerHomeScreen(
 
                     Spacer(Modifier.height(40.dp))
 
+                    // --- UPDATED CARD FOR NEW FLOW ---
                     DashboardCard(
                         title = "LOAD CROPS",
-                        subtitle = "Add vehicles & manage batches",
+                        subtitle = "Create & Manage Batches",
                         icon = Icons.Default.Inventory
                     ) {
-                        navController.navigate("vehicles/$farmerId")
+                        // Takes user directly to the merged Create/List screen
+                        navController.navigate("manage_batches/$farmerId")
                     }
 
                     Spacer(Modifier.height(32.dp))
@@ -139,84 +138,77 @@ fun FarmerHomeScreen(
 
                     Spacer(Modifier.height(16.dp))
 
+                    // --- LIVE DASHBOARD CONTENT ---
                     when (dashboardState) {
-
                         is ApiResult.Loading -> {
                             CircularProgressIndicator()
                         }
-
                         is ApiResult.Error -> {
-                            Text("Failed to load dashboard")
+                            Text("Failed to load dashboard", color = Color.Red)
                         }
-
                         is ApiResult.Success -> {
+                            val data = (dashboardState as ApiResult.Success).data
 
-                            val data =
-                                (dashboardState as ApiResult.Success).data
-
-                            data.vehicles.forEach { vehicle ->
-
-                                Card(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 16.dp),
-                                    shape = RoundedCornerShape(20.dp)
-                                ) {
-
-                                    Column(
-                                        modifier = Modifier.padding(16.dp)
+                            if (data.vehicles.isEmpty()) {
+                                Text("No active vehicles found.")
+                            } else {
+                                data.vehicles.forEach { vehicle ->
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(bottom = 16.dp),
+                                        shape = RoundedCornerShape(20.dp),
+                                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                                        elevation = CardDefaults.cardElevation(4.dp)
                                     ) {
-
-                                        Text(
-                                            "Vehicle: ${vehicle.hardwareId}",
-                                            style = MaterialTheme.typography.titleMedium
-                                        )
-
-                                        Spacer(Modifier.height(6.dp))
-
-                                        Text("Temp: ${vehicle.currentTemp}°C")
-                                        Text("Humidity: ${vehicle.currentHumidity}%")
-
-                                        Spacer(Modifier.height(12.dp))
-
-                                        vehicle.batches.forEach { batch ->
-
+                                        Column(
+                                            modifier = Modifier.padding(16.dp)
+                                        ) {
                                             Text(
-                                                "Batch: ${batch.batchId}",
-                                                style = MaterialTheme.typography.bodyLarge
+                                                "Vehicle: ${vehicle.hardwareId}",
+                                                style = MaterialTheme.typography.titleMedium,
+                                                color = MaterialTheme.colorScheme.primary
                                             )
 
                                             Spacer(Modifier.height(6.dp))
 
-                                            batch.crates.forEach { crate ->
-
-                                                val color = when {
-                                                    crate.qualityScore >= 80 -> Color(
-                                                        0xFF2E7D32
-                                                    )
-
-                                                    crate.qualityScore >= 60 -> Color(
-                                                        0xFFF9A825
-                                                    )
-
-                                                    else -> Color.Red
-                                                }
-
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    horizontalArrangement = Arrangement.SpaceBetween
-                                                ) {
-                                                    Text("Crate ${crate.crateId}")
-                                                    Text(
-                                                        "Q: ${crate.qualityScore}",
-                                                        color = color
-                                                    )
-                                                }
-
-                                                Spacer(Modifier.height(4.dp))
+                                            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                                Text("🌡️ ${vehicle.currentTemp}°C")
+                                                Text("💧 ${vehicle.currentHumidity}%")
                                             }
 
+                                            Spacer(Modifier.height(12.dp))
+                                            Divider()
                                             Spacer(Modifier.height(8.dp))
+
+                                            vehicle.batches.forEach { batch ->
+                                                Text(
+                                                    "Batch: ${batch.batchId.takeLast(6)}...",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = Color.Gray
+                                                )
+
+                                                batch.crates.forEach { crate ->
+                                                    val color = when {
+                                                        crate.qualityScore >= 80 -> Color(0xFF2E7D32) // Green
+                                                        crate.qualityScore >= 60 -> Color(0xFFF9A825) // Yellow
+                                                        else -> Color.Red
+                                                    }
+
+                                                    Row(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        horizontalArrangement = Arrangement.SpaceBetween
+                                                    ) {
+                                                        Text("• Crate ${crate.crateId}")
+                                                        Text(
+                                                            "Q: ${crate.qualityScore}",
+                                                            color = color,
+                                                            style = MaterialTheme.typography.labelLarge
+                                                        )
+                                                    }
+                                                }
+                                                Spacer(Modifier.height(8.dp))
+                                            }
                                         }
                                     }
                                 }
@@ -263,7 +255,7 @@ fun DashboardCard(
     Card(
         onClick = onClick,
         shape = RoundedCornerShape(28.dp),
-        elevation = CardDefaults.cardElevation(12.dp),
+        elevation = CardDefaults.cardElevation(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -273,7 +265,6 @@ fun DashboardCard(
                 .padding(24.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Box(
                 modifier = Modifier
                     .size(56.dp)

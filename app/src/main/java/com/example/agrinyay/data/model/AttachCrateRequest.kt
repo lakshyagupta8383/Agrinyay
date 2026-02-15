@@ -1,7 +1,12 @@
 package com.example.agrinyay.data.model
 
+import com.google.gson.annotations.SerializedName
+
 data class AttachCrateRequest(
-    val batchId:String,
-    val qrCode:String,
-    val condition:String
+    @SerializedName("qr_code")
+    val qrCode: String,
+    @SerializedName("condition")
+    val condition: String,
+    @SerializedName("batch_id")
+    val batchId: String
 )

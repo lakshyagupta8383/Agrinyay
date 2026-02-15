@@ -8,17 +8,14 @@ class BatchRepository {
     private val firestore = FirebaseFirestore.getInstance()
 
     suspend fun createBatch(
-        farmerId: String,
         batchId: String,
         fruitType: String,
         weight: String,
-        location: String
-    ) {
+
+        ) {
         val batchData = mapOf(
-            "farmerId" to farmerId,
             "fruitType" to fruitType,
             "weight" to weight,
-            "location" to location
         )
 
         firestore.collection("batches")
