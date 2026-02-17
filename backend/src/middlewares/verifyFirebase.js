@@ -13,6 +13,9 @@ module.exports = async (req, res, next) => {
     req.user = decoded;
     next();
   } catch (err) {
+    console.log("TOKEN ERROR:", err.message);
+    console.log("PROJECT ID:", process.env.FIREBASE_PROJECT_ID);
     return res.status(401).json({ message: "Invalid Firebase token" });
   }
+
 };
