@@ -17,87 +17,87 @@ import com.example.agrinyay.viewmodel.AuthResult
 import com.example.agrinyay.viewmodel.AuthViewModel
 
 @Composable
-fun LoginScreen(navController:NavController){
+fun LoginScreen(navController: NavController) {
 
-    val viewModel:AuthViewModel=viewModel()
+    val viewModel: AuthViewModel = viewModel()
     val state by viewModel.authState.collectAsState()
     val selectedRole by viewModel.selectedRole.collectAsState()
 
-    var email by remember{mutableStateOf("")}
-    var password by remember{mutableStateOf("")}
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
 
-    val gradient=Brush.verticalGradient(
-        colors=listOf(
+    val gradient = Brush.verticalGradient(
+        colors = listOf(
             Color(0xFFE8F5E9),
             Color(0xFFF1F8E9),
             Color.White
         )
     )
 
-    Scaffold{padding->
+    Scaffold { padding ->
 
         Box(
-            modifier=Modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .background(gradient)
                 .padding(padding)
-        ){
+        ) {
 
             Column(
-                modifier=Modifier
+                modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal=24.dp)
+                    .padding(horizontal = 24.dp)
                     .align(Alignment.Center)
-            ){
+            ) {
 
                 Text(
-                    text="AgriNyay 🌾",
-                    style=MaterialTheme.typography.headlineLarge,
-                    color=MaterialTheme.colorScheme.primary
+                    text = "AgriNyay 🌾",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.primary
                 )
 
                 Spacer(Modifier.height(40.dp))
 
                 Card(
-                    shape=RoundedCornerShape(28.dp),
-                    elevation=CardDefaults.cardElevation(12.dp),
-                    colors=CardDefaults.cardColors(containerColor=Color.White)
-                ){
+                    shape = RoundedCornerShape(28.dp),
+                    elevation = CardDefaults.cardElevation(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
 
                     Column(
-                        modifier=Modifier
+                        modifier = Modifier
                             .fillMaxWidth()
                             .padding(24.dp)
-                    ){
+                    ) {
 
                         Row(
-                            modifier=Modifier.fillMaxWidth(),
-                            horizontalArrangement=Arrangement.SpaceEvenly
-                        ){
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
 
                             Button(
-                                onClick={viewModel.setRole("farmer")},
-                                colors=ButtonDefaults.buttonColors(
-                                    containerColor=
-                                        if(selectedRole=="farmer")
+                                onClick = { viewModel.setRole("farmer") },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor =
+                                        if (selectedRole == "farmer")
                                             MaterialTheme.colorScheme.primary
                                         else
                                             MaterialTheme.colorScheme.surfaceVariant
                                 )
-                            ){
+                            ) {
                                 Text("Farmer")
                             }
 
                             Button(
-                                onClick={viewModel.setRole("customer")},
-                                colors=ButtonDefaults.buttonColors(
-                                    containerColor=
-                                        if(selectedRole=="customer")
+                                onClick = { viewModel.setRole("customer") },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor =
+                                        if (selectedRole == "customer")
                                             MaterialTheme.colorScheme.primary
                                         else
                                             MaterialTheme.colorScheme.surfaceVariant
                                 )
-                            ){
+                            ) {
                                 Text("Customer")
                             }
                         }
@@ -105,55 +105,55 @@ fun LoginScreen(navController:NavController){
                         Spacer(Modifier.height(24.dp))
 
                         OutlinedTextField(
-                            value=email,
-                            onValueChange={email=it},
-                            label={Text("Email")},
-                            modifier=Modifier.fillMaxWidth(),
-                            singleLine=true,
-                            shape=RoundedCornerShape(16.dp)
+                            value = email,
+                            onValueChange = { email = it },
+                            label = { Text("Email") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            shape = RoundedCornerShape(16.dp)
                         )
 
                         Spacer(Modifier.height(20.dp))
 
                         OutlinedTextField(
-                            value=password,
-                            onValueChange={password=it},
-                            label={Text("Password")},
-                            modifier=Modifier.fillMaxWidth(),
-                            singleLine=true,
-                            visualTransformation=PasswordVisualTransformation(),
-                            shape=RoundedCornerShape(16.dp)
+                            value = password,
+                            onValueChange = { password = it },
+                            label = { Text("Password") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            visualTransformation = PasswordVisualTransformation(),
+                            shape = RoundedCornerShape(16.dp)
                         )
 
                         Spacer(Modifier.height(32.dp))
 
                         Button(
-                            onClick={
-                                viewModel.login(email,password)
+                            onClick = {
+                                viewModel.login(email, password)
                             },
-                            modifier=Modifier
+                            modifier = Modifier
                                 .fillMaxWidth()
                                 .height(54.dp),
-                            shape=RoundedCornerShape(20.dp)
-                        ){
+                            shape = RoundedCornerShape(20.dp)
+                        ) {
                             Text("Login")
                         }
 
                         Spacer(Modifier.height(16.dp))
 
                         TextButton(
-                            onClick={
+                            onClick = {
                                 navController.navigate("signup")
                             }
-                        ){
+                        ) {
                             Text("Create New Account")
                         }
 
-                        if(state is AuthResult.Error){
+                        if (state is AuthResult.Error) {
                             Spacer(Modifier.height(12.dp))
                             Text(
-                                text=(state as AuthResult.Error).message,
-                                color=MaterialTheme.colorScheme.error
+                                text = (state as AuthResult.Error).message,
+                                color = MaterialTheme.colorScheme.error
                             )
                         }
                     }
@@ -162,21 +162,25 @@ fun LoginScreen(navController:NavController){
         }
     }
 
-    LaunchedEffect(state){
-        when(state){
+    LaunchedEffect(state) {
+        when (state) {
 
-            is AuthResult.Farmer->{
-                val uid=(state as AuthResult.Farmer).uid
-                navController.navigate("farmer_home/$uid"){
-                    popUpTo("login"){ inclusive=true }
+            is AuthResult.Farmer -> {
+                val uid = (state as AuthResult.Farmer).uid
+                navController.navigate("farmer_home/$uid") {
+                    popUpTo("login") { inclusive = true }
                 }
             }
 
-            is AuthResult.Customer->{
-                // Customer flow later
+            // FIX: Added Customer Navigation Logic
+            is AuthResult.Customer -> {
+                val uid = (state as AuthResult.Customer).uid
+                navController.navigate("customer_home/$uid") {
+                    popUpTo("login") { inclusive = true }
+                }
             }
 
-            else->{}
+            else -> {}
         }
     }
 }

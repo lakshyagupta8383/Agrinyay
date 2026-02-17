@@ -8,6 +8,7 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.example.agrinyay.ui.auth.*
 import com.example.agrinyay.ui.farmer.*
+import com.example.agrinyay.ui.customer.* // Make sure this import is here!
 import com.example.agrinyay.viewmodel.BatchViewModel
 
 @Composable
@@ -69,7 +70,6 @@ fun RootNavGraph() {
             ) { backStackEntry ->
                 val farmerId = backStackEntry.arguments?.getString("farmerId") ?: ""
 
-                // Get ViewModel scoped to the graph so data survives navigation
                 val parentEntry = remember(backStackEntry) {
                     navController.getBackStackEntry("farmer_graph")
                 }
@@ -117,11 +117,10 @@ fun RootNavGraph() {
                 }
                 val batchViewModel: BatchViewModel = viewModel(viewModelStoreOwner = parentEntry)
 
-                // FIX: Use named arguments to prevent type mismatch
                 ScanResultScreen(
                     navController = navController,
                     batchId = batchId,
-                    crateId = "", // Pass empty string because we are creating a new one
+                    crateId = "", // Pass empty string for new crate
                     viewModel = batchViewModel
                 )
             }
@@ -145,9 +144,31 @@ fun RootNavGraph() {
                 ScanResultScreen(
                     navController = navController,
                     batchId = batchId,
-                    crateId = crateId, // Pass the existing ID
+                    crateId = crateId,
                     viewModel = batchViewModel
                 )
+            }
+        }
+
+        // --- CUSTOMER GRAPH (NEW) ---
+        navigation(
+            startDestination = "customer_home/{customerId}",
+            route = "customer_graph"
+        ) {
+
+            // 1. Customer Dashboard
+            composable(
+                route = "customer_home/{customerId}",
+                arguments = listOf(navArgument("customerId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val customerId = backStackEntry.arguments?.getString("customerId") ?: ""
+                CustomerHomeScreen(navController, customerId)
+            }
+
+            // 2. Customer Scanner (We will build this logic next)
+            composable("customer_scan") {
+                // Placeholder: We will add the UI for this in the next step
+                // CustomerScanScreen(navController)
             }
         }
     }
