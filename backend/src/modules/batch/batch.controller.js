@@ -1,10 +1,23 @@
 const Batch = require("./batch.model");
+const Hardware = require("../hardware/hardware.model");
 
 exports.createBatch = async (req, res) => {
   try {
     const batch_uid = `BATCH_${Date.now()}`;
     console.log("Creating Batch:", req.body);
-    
+    const hardwareDoc = await Hardware.findOne({ hardware_id: hardware });
+    if (!hardwareDoc) {
+      return res.status(404).json({
+        success: false,
+        message: "Hardware not registered",
+      });
+    }
+    if (hardwareDoc.status !== "ACTIVE") {
+      return res.status(403).json({
+        success: false,
+        message: "Hardware is inactive",
+    });
+}
     const batch = await Batch.create({
       farmer_uid: req.user.uid,  
       batch_uid,
