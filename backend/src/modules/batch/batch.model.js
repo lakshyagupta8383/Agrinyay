@@ -26,6 +26,9 @@ const batchSchema = new mongoose.Schema(
 
     hardware: {
       type: String,
+      unique: true, 
+      sparse: true,   
+      index: true,
     },
 
     crate_ids: {
