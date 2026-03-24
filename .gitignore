@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 node_modules/
 .env
 node_modules/
@@ -19,3 +20,23 @@ ml-service/node_modules/
 .externalNativeBuild
 .cxx
 local.properties
+=======
+# Virtual Environment
+venv/
+.env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Model files (optional if large)
+*.pkl
+>>>>>>> ml
